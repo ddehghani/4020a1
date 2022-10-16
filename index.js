@@ -1,52 +1,74 @@
 //https://developer.mozilla.org/en-US/docs/Web/Guide/Parsing_and_serializing_XML
 // loading the document
+function getTitlesObject() {
+  const xhr = new XMLHttpRequest();
+  var titles;
 
-const xhr = new XMLHttpRequest();
-var titles;
+  xhr.onload = () => {
+    console.log(xhr.responseXML.documentElement.nodeName); // document can be parsed here
+    titles = xhr.responseXML.getElementsByTagName("ArticleTitle") // titles is an HTMLCollection object
+    //console.log(titles);
+    //still need to remove the actual tags from the list items (should leave only )
+    console.log(titles[0])
+  }
 
-xhr.onload = () => {
-  console.log(xhr.responseXML.documentElement.nodeName); // document can be parsed here
-  titles = xhr.responseXML.getElementsByTagName("ArticleTitle")
-  console.log(titles);
-  //still need to remove the actual tags from the list items (should leave only )
-  console.log(titles[0])
-}
+  xhr.onerror = () => {
+    console.log("Error while getting XML.");
+  }
 
-xhr.onerror = () => {
-  console.log("Error while getting XML."); 
-}
+  xhr.open("GET", "http://localhost:80/4020a1/4020a1-datasets.xml",false); // set async to false to allow response.xml to be accessed outside of onload()
+    xhr.send();
 
-xhr.open("GET", "http://localhost:80/4020a1/4020a1-datasets.xml",false);
-  //xhr.responseType = "document";
-  xhr.send();
+  //console.log(titles[7]);
 
-console.log(titles[7]);
-
-  // response xml, check document docs on how to output it, may not need to serialize
-
-// var or const?
-
-
-  // serialize
-  // const serializer = new XMLSerializer();
-  // const xmlStr = serializer.serializeToString(xhr.responseXML);
-
+  return titles;
   
-//------------------------------
+  
+}
 
-// const doc = "4020a1-datasets.xml"
-// const serializer = new XMLSerializer();
-// const xmlStr = serializer.serializeToString(doc);
+function isolateInnerHTMLFieldsFromTitles(titlesObject) { // titles is an HTMLCollection object
+  //test length function on titlesObject - check 
+  console.log(titlesObject.length)
 
-// parser = new DOMParser();
-// xmlDoc = parser.parseFromString(xmlStr,"text/xml");
+  //Loop through and extract innerhtml between all <ArticleTitle> tags 
+  var i = 0, len = titlesObject.length;
+  var titlesArray = []
+  while (i < len) {
+      // your code
+      titlesArray[i] = titlesObject[i].innerHTML;
+      
+      i++ //iterator
+  }
+  console.log(titlesArray);
 
-// var titles = xmlDoc.getElementsByTagName("ArticleTitle")[0].nodeValue;
-
-// console.log(titles);
+}
 
 
-//----------------------------------------------
 
-// document.getElementById("demo").innerHTML =
-// xmlDoc.getElementsByTagName("title")[0].childNodes[0].nodeValue;
+//Run functions
+
+isolateInnerHTMLFieldsFromTitles(getTitlesObject());
+
+function getPMIDsFromAPI (inputArray) {
+  const xhr = new XMLHttpRequest();
+  var pmids;
+
+  xhr.onload = () => {
+    console.log(xhr.responseXML.documentElement.nodeName); // document can be parsed here
+    pmids = xhr.responseXML.getElementsByTagName("PMID") // titles is an HTMLCollection object
+    //console.log(titles);
+    //still need to remove the actual tags from the list items (should leave only )
+    console.log(pmids[0])
+  }
+
+  xhr.onerror = () => {
+    console.log("Error while getting XML.");
+  }
+
+  xhr.open("GET", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed",false); // set async to false to allow response.xml to be accessed outside of onload()
+    xhr.send();
+
+  //console.log(titles[7]);
+
+  return pmids;
+} 
