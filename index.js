@@ -43,12 +43,14 @@ function isolateInnerHTMLFieldsFromTitles(titlesObject) { // titles is an HTMLCo
   return titlesArray;
 }
 
-
-
-//Run functions
-
+//Check 
 var firstTitle = isolateInnerHTMLFieldsFromTitles(getTitlesObject())[0];
 console.log(firstTitle);
+//Run functions
+
+
+
+
 console.log("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed"+"&term="+firstTitle);
 var titlesArrayInput = isolateInnerHTMLFieldsFromTitles(getTitlesObject());
 
@@ -58,6 +60,7 @@ function getPMIDsFromAPI (inputArray) {
 
   xhr.onload = () => {
     pmids = xhr.responseXML;
+    console.log(xhr.responseXML)
     console.log(xhr.responseXML.getElementsByTagName("PMID")[0]);
     console.log(pmids[0]); // check first pmid to see if results were correct
   }
@@ -72,15 +75,15 @@ function getPMIDsFromAPI (inputArray) {
   console.log("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed"+"term"+firstTitle);
   // while (i < len) {
       // your code
-  xhr.open("GET", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed"+"&term="+firstTitle,false); // set async to false to allow response.xml to be accessed outside of onload()
+      xhr.open("GET", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%22John%20Snow%20and%20modern-day%20environmental%20epidemiology%22&field=title",false); //
+  //hr.open("GET", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed"+"&term="+firstTitle,false); // set async to false to allow response.xml to be accessed outside of onload()
   xhr.send();
   //    i++ //iterator
   // }
-
 
   //console.log(titles[7]);
 
   return pmids;
 }
 
-getPMIDsFromAPI(titlesArrayInput);
+getPMIDsFromAPI(titlesArrayInput); 
