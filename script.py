@@ -5,23 +5,43 @@ root = ET.parse('4020a1-datasets.xml').getroot()
 #print(root)
 
 articleTitleList = []
-yearCreatedList = []
-monthCreatedList = []
-dayCreatedList = []
-for (ArticleTitle, DateCreated) in zip(root.iter('ArticleTitle'),root.iter('DateCreated')):
-    # print(ArticleTitle.text.split()[:3], DateCreated[0].text, DateCreated[1].text, DateCreated[2].text)
+pubYearList = []
+pubMonthList = []
+pubDayList = []
+#iterCount = 0
+for (ArticleTitle, PubDate) in zip(root.iter('ArticleTitle'),root.iter('PubDate')):
+    # print(ArticleTitle.text.split()[:3], PubDate[0].text, PubDate[1].text, PubDate[2].text)
     articleTitleList.append(ArticleTitle.text.split()[:3])
-    yearCreatedList.append(DateCreated[0].text)
-    monthCreatedList.append(DateCreated[1].text)
-    dayCreatedList.append(DateCreated[2].text)
+    #print(ArticleTitle.text.split()[:3],end="")
+    try:
+        pubYearList.append(PubDate[0].text)
+        #print(PubDate[0].text,end="")
+    except:
+        pubYearList.append('')
+    try:    
+        pubMonthList.append(PubDate[1].text)
+        #print(PubDate[1].text,end="")
+    except:
+        pubMonthList.append('') 
+    try:
+        pubDayList.append(PubDate[2].text)
+        #print(PubDate[2].text)
+    except:
+        pubDayList.append('')
+    #print(pubDayList)
+    # iterCount = iterCount + 1
+    # print(iterCount + articleTitleList[iterCount] + pubYearList[iterCount] + pubMonthList[iterCount] + pubDayList[iterCount])
+    # print(articleTitleList[articleTitleList.index(ArticleTitle)] + pubYearList[pubYearList.index(PubDate)] + pubMonthList[pubMonthList.index(PubDate)] + pubDayList[pubDayList.index(PubDate)])
+#
+articleInfo = [list(a) for a in zip(articleTitleList, pubYearList,pubMonthList,pubDayList)]
+print(articleInfo[1])
 
-# print(articleTitleList[0:3])
 
-for PubmedArticle in root.iter("ArticleTitle"):
-    x = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='+PubmedArticle.text)
+for article in articleInfo:
+    # https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=
+    x = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='+article[0][0]+'&retmax=3&datetype=pdate')
 
     print(x.text)
-
 
 
 # press python script.py in terminal to run this
