@@ -1,48 +1,54 @@
+from dataclasses import dataclass
+from datetime import date
 import xml.etree.ElementTree as ET
-import requests # must use pip install requests for this to work
+import requests
+import time
 
-root = ET.parse('4020a1-datasets.xml').getroot()
-#print(root)
+@dataclass
+class Article():
+    ArticleTitle: str
+    pubDate: date
 
-articleTitleList = []
-pubYearList = []
-pubMonthList = []
-pubDayList = []
-#iterCount = 0
-for (ArticleTitle, PubDate) in zip(root.iter('ArticleTitle'),root.iter('PubDate')):
-    # print(ArticleTitle.text.split()[:3], PubDate[0].text, PubDate[1].text, PubDate[2].text)
-    articleTitleList.append(ArticleTitle.text.split()[:3])
-    #print(ArticleTitle.text.split()[:3],end="")
-    try:
-        pubYearList.append(PubDate[0].text)
-        #print(PubDate[0].text,end="")
-    except:
-        pubYearList.append('')
-    try:    
-        pubMonthList.append(PubDate[1].text)
-        #print(PubDate[1].text,end="")
-    except:
-        pubMonthList.append('') 
-    try:
-        pubDayList.append(PubDate[2].text)
-        #print(PubDate[2].text)
-    except:
-        pubDayList.append('')
-    #print(pubDayList)
-    # iterCount = iterCount + 1
-    # print(iterCount + articleTitleList[iterCount] + pubYearList[iterCount] + pubMonthList[iterCount] + pubDayList[iterCount])
-    # print(articleTitleList[articleTitleList.index(ArticleTitle)] + pubYearList[pubYearList.index(PubDate)] + pubMonthList[pubMonthList.index(PubDate)] + pubDayList[pubDayList.index(PubDate)])
-#
-articleInfo = [list(a) for a in zip(articleTitleList, pubYearList,pubMonthList,pubDayList)]
-print(articleInfo[1])
+def main():
+    PATH_TO_SOURCE_XML = './4020a1-datasets.xml'
+    ESEARCH_BASE_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi'
+    articles = extractArticles(PATH_TO_SOURCE_XML)
+    print(f'{len(articles) = }')
+    ids = getIdsByAPICall(articles,ESEARCH_BASE_URL)
+    print(f'{len(ids) = }')
+    print(ids)
 
+def getIdsByAPICall(articles: list[Article], baseurl) -> list[int]:
+    result = []
+    failCount = 0
+    for article in articles[:]:
+        params = {'db': 'pubmed', 'term': article.ArticleTitle, 'field': 'title'}
+        try:
+            root = ET.fromstring(requests.get(baseurl, params=params).text)
+            result.append(int(root.find('IdList')[0].text))
+            resultCount = root.find('Count').text
+            if resultCount != '1':
+                #print(f'{article.ArticleTitle = }')
+                #print(f'{resultCount = }')
+                failCount += 1
+        except Exception as e:
+            print(e)
+            failCount += 1
+        time.sleep(0.2) #api call limit rate
+    print(f'{len(result) * 100 / (len(result) + failCount)}:.2f%')
+    return result
 
-for article in articleInfo:
-    # https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=
-    x = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='+article[0][0]+'&retmax=3&datetype=pdate')
+def extractArticles(sourceFile: str) -> list[Article]:
+    root = ET.parse(sourceFile).getroot()
+    return [ Article(ArticleTitle.text,  
+                        date( int(PubDate[0].text), 
+                        convertMonthToNum(PubDate[1].text), 
+                        1 if len(PubDate) < 3 else int(PubDate[2].text))) 
+                for (ArticleTitle, PubDate) in zip(root.iter('ArticleTitle'),root.iter('PubDate'))]
 
-    print(x.text)
+def convertMonthToNum(month: str) -> int:
+    source = { 'Jan': 1, 'Feb' : 2, 'Mar' : 3, 'Apr' : 4, 'May' : 5, 'Jun' : 6, 'Jul' : 7, 'Aug': 8, 'Sep': 9, 'Oct' : 10, 'Nov': 11, 'Dec' : 12}
+    return source.get(month)
 
-
-# press python script.py in terminal to run this
-#press python -V  to check if python 3 is installed
+if __name__ == '__main__':
+    main()
